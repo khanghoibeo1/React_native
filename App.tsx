@@ -1,28 +1,66 @@
-import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { useAsyncStorage } from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
-import LoginScreen from './src/screens/LoginScreen';
-import IntroScreen from './src/screens/IntroScreen';
-import RegisterScreen from './src/screens/RegisterScreen';
-import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
-import OTPScreen from './src/screens/OTPScreen';
-import HomePage from './src/screens/HomePage';
+import React, { useEffect, useState } from 'react';
+import { StatusBar } from 'react-native';
+import AuthNavigator from './src/navigators/AuthNavigator';
+import MainNavigator from './src/navigators/MainNavigator';
+import { SplashScreen } from './src/screens';
 
-const Stack = createStackNavigator();
+const App = () => {
+  const [isShowSplash, setIsShowSplash] = useState(true);
+  const [accessToken, setAccessToken] = useState('');
+  const {getItem, setItem} = useAsyncStorage('assetToken');
 
-const AuthStack = () => {
+  useEffect(() => {
+    const timeout = setTimeout(() =>{
+      setIsShowSplash(false);
+    },1500);
+
+    return () => clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    checkLogin();
+  }, [])
+
+  const checkLogin = async () => {
+    const token = await getItem();
+
+    token && setAccessToken(token);
+  }
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="IntroScreen">
-        <Stack.Screen name="IntroScreen" component={IntroScreen} />
-        <Stack.Screen name="LoginScreen" component={LoginScreen} />
-        <Stack.Screen name="HomePage" component={HomePage} />
-        <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
-        <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} />
-        <Stack.Screen name="OTPScreen" component={OTPScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-};
+    <>
+    <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+    {isShowSplash ? (
+      <SplashScreen/>
+    ) : ( 
+      <NavigationContainer>
+        {
+          accessToken ? <MainNavigator /> : <AuthNavigator />
+        }
+        
+      </NavigationContainer>
+    )}
+    </>
+  )
+}
+// const Stack = createStackNavigator();
 
-export default AuthStack;
+
+
+// const AuthStack = () => {
+//   return (
+//     <NavigationContainer>
+//       <Stack.Navigator initialRouteName="IntroScreen">
+//         <Stack.Screen name="IntroScreen" component={IntroScreen} />
+//         <Stack.Screen name="LoginScreen" component={LoginScreen} />
+//         <Stack.Screen name="HomeScreen" component={HomeScreen} />
+//         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
+//         <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} />
+//         <Stack.Screen name="OTPScreen" component={OTPScreen} />
+//       </Stack.Navigator>
+//     </NavigationContainer>
+//   );
+// };
+
+export default App;
